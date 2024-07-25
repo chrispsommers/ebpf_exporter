@@ -27,13 +27,20 @@ RUN make -j $(nproc) -C /build/ebpf_exporter build && \
 FROM debian:bookworm as examples_builder
 
 RUN apt-get update && \
-    apt-get install -y clang-16 make
+    apt-get install -y clang-16 make wget
+
+RUN wget https://go.dev/dl/go1.22.5.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz && \
+    rm go1.22.5.linux-amd64.tar.gz
+
+ENV PATH=${PATH}:/usr/local/go/bin
 
 COPY --from=libbpf_builder /build/ebpf_exporter/libbpf /build/ebpf_exporter/libbpf
 
 COPY ./ /build/ebpf_exporter
 
 RUN make -j $(nproc) -C /build/ebpf_exporter/examples CC=clang-16
+RUN make -j $(nproc) -C /build/ebpf_exporter/tracing/demos CC=clang-16
 
 
 # ebpf_exporter release image
@@ -51,5 +58,6 @@ FROM gcr.io/distroless/static-debian11 as ebpf_exporter_with_examples
 COPY --from=ebpf_exporter_builder /build/ebpf_exporter/ebpf_exporter /ebpf_exporter
 COPY --from=ebpf_exporter_builder /usr/share/misc/pci.ids /usr/share/misc/pci.ids
 COPY --from=examples_builder /build/ebpf_exporter/examples /examples
+COPY --from=examples_builder /build/ebpf_exporter/tracing/demos /examples
 
 ENTRYPOINT ["/ebpf_exporter"]

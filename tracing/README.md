@@ -112,7 +112,7 @@ To build the demos for examples below, run:
 ```
 make tracing-demos
 ```
-
+To run the examples, use the same options described in [Building and Running][../README.md/#building-and-running]
 ### `bio-trace`
 
 * Config: [bio-trace.yaml](../examples/bio-trace.yaml)
